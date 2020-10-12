@@ -9,9 +9,12 @@
 #include <errno.h> 
 #include <string.h>
 #include <unistd.h>  
+#include <map>
 
 #include "httpparser/request.h"
 #include "httpparser/httprequestparser.h"
+
+#include "route.h"
 
 using namespace std;
 using namespace httpparser;
@@ -27,12 +30,40 @@ class Server{
     int status = -1;
 
     HttpRequestParser parser;
+
+    map<string, Route> routes;
     
     public:
     Server(){
         hints.ai_family = AF_UNSPEC;     //IPv4(AF_INET) или IPv6  
         hints.ai_socktype = SOCK_STREAM; // TCP stream-sockets
         hints.ai_flags = AI_PASSIVE;
+    }
+
+
+    void GET(){}
+
+    void get(string name){
+        cout << "GET: " << name << endl;
+    }
+
+
+
+    void parse_request(char* buffer, ssize_t bytes_recv){
+        Request response;
+        HttpRequestParser::ParseResult res = parser.parse(response, buffer, buffer + strlen(buffer));
+
+        if(res == HttpRequestParser::ParsingCompleted){
+            if(response.method == "GET"){
+                get(response.uri);
+            }
+            //cout << response.inspect() << endl;
+        }else{
+            //cerr << "Parsing failed" << endl;
+        }
+
+        //fprintf(stdout, "%s \n[%ld chars]\n\n", buffer, bytes_recv);
+        fprintf(stdout, "", buffer, bytes_recv);
     }
 
     void listen_port(char* port_){
@@ -64,7 +95,7 @@ class Server{
             }
 
             inet_ntop(server->ai_family, addr, ipstr, sizeof ipstr);
-            printf("  %s: %sn", ipver, ipstr);
+            //printf("  %s: %sn", ipver, ipstr);
         }
 
 
@@ -87,9 +118,6 @@ class Server{
             }
 
             int csockfd;
-
-
-            int bytes;
              
             while(true){
                 if(listen(sockfd, 10) == -1){
@@ -107,16 +135,7 @@ class Server{
                 ssize_t bytes_recv = recv(csockfd, (void *)buffer, length, flags);
 
                 if(bytes_recv > 0){
-                    Request response;
-                    HttpRequestParser::ParseResult res = parser.parse(response, buffer, buffer + strlen(buffer));
-
-                    if(res == HttpRequestParser::ParsingCompleted){
-                        cout << response.inspect() << endl;
-                    }else{
-                        cerr << "Parsing failed" << endl;
-                    }
-
-                    //fprintf(stdout, "", buffer, bytes_recv);
+                    this->parse_request(buffer, bytes_recv);
                 }else if(bytes_recv == 0){
                     //printf("the remote side has closed the connection on you!");
                 }else{
@@ -137,11 +156,9 @@ class Server{
                 if(bytes_sent == -1) {
                     perror("send()");
                 }else{
-                    printf("Sent %ld characters\n",bytes_sent);
+                    //printf("Sent %ld characters\n",bytes_sent);
                 }
 
-                printf("--\n");
-                
                 close(csockfd);
             }
         }
