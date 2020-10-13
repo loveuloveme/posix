@@ -16,6 +16,8 @@
 
 #include "route.h"
 
+#include "../utils/ParseRequestResult.cpp"
+
 using namespace std;
 
 class Server{
@@ -47,7 +49,7 @@ class Server{
         cout << "GET: " << name << endl;
     }
 
-    void parse_request(char* buffer, ssize_t bytes_recv);
+    ParseRequestResult parse_request(char* buffer, ssize_t bytes_recv);
     void listen_port(char* port_);
 };
 

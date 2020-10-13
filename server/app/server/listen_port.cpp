@@ -1,5 +1,7 @@
 #include "server.h";
 
+#include "../utils/ParseRequestResult.cpp"
+
 void Server::listen_port(char* port_){
     port = port_;
 
@@ -70,13 +72,16 @@ void Server::listen_port(char* port_){
             size_t length = sizeof(buffer);
             ssize_t bytes_recv = recv(csockfd, (void *)buffer, length, flags);
 
+            ParseRequestResult request;
             if(bytes_recv > 0){
-                this->parse_request(buffer, bytes_recv);
+                request = this->parse_request(buffer, bytes_recv);
             }else if(bytes_recv == 0){
                 //printf("the remote side has closed the connection on you!");
             }else{
                 perror("recv()");
             }
+
+            cout << request.request.uri << endl;
         
             const char header[] =
             "HTTP/1.1 200 OK\r\n"

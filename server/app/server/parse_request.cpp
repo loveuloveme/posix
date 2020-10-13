@@ -3,27 +3,21 @@
 #include "../utils/httpparser/request.h"
 #include "../utils/httpparser/httprequestparser.h"
 #include "../utils/httpparser/urlparser.h"
-#include "../utils/queryparser/Query.cpp"
+#include "../utils/Query.cpp"
 
 using namespace httpparser;
 
-void Server::parse_request(char* buffer, ssize_t bytes_recv){
+ParseRequestResult Server::parse_request(char* buffer, ssize_t bytes_recv){
     Request request;
     HttpRequestParser parser;
     HttpRequestParser::ParseResult res = parser.parse(request, buffer, buffer + strlen(buffer));
 
     //fprintf(stdout, "%s \n[%ld chars]\n\n", buffer, bytes_recv);
     if(res == HttpRequestParser::ParsingCompleted){
-        if(request.method == "GET"){
-            Query params(request.uri);
-
-            cout << "GET request " << params.params["hehe"] << endl;
-        }else if(request.method == "POST"){
-            cout << "POST request" << endl;
-        }
+        return ParseRequestResult(Query(request.uri), request);
     }else{
         cout << "Parse Error" << endl; //Error
     }
 
-    return;
+    return ParseRequestResult();
 }

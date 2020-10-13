@@ -1,3 +1,6 @@
+#ifndef QUERY
+#define QUERY
+
 #include <map>
 #include <string>
 
@@ -6,6 +9,8 @@ using namespace std;
 class Query{
     public:
     map<string, string> params;
+
+    Query(){}
 
     Query(string query){
         bool isName = false;
@@ -46,3 +51,5 @@ class Query{
         }
     }
 };
+
+#endif

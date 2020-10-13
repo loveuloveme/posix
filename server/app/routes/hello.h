@@ -1,7 +1,11 @@
 #include <iostream>
 
-void action(){
+#include "../server/route.h";
+#include "../utils/queryparser/Query.cpp"
+
+
+void action(Query query){
     cout << "lol" << endl;
 }
 
-Route* helloRoute = new Route("lol", action);
+Route helloRoute = Route("lol", action);
