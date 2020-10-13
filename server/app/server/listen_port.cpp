@@ -5,7 +5,7 @@ void Server::listen_port(char* port_){
 
     status = getaddrinfo(hostname, port, &hints, &server_info);
 
-    if(status){
+    if(status < 0){
         fprintf(stderr, "getaddrinfo error: %sn", gai_strerror(status));
         return;
     }
@@ -29,7 +29,7 @@ void Server::listen_port(char* port_){
         }
 
         inet_ntop(server->ai_family, addr, ipstr, sizeof ipstr);
-        //printf("  %s: %sn", ipver, ipstr);
+        printf("  %s: %sn \n", ipver, ipstr);
     }
 
 
@@ -53,10 +53,12 @@ void Server::listen_port(char* port_){
 
         int csockfd;
             
-            if(listen(sockfd, 10) == -1){
+        if(listen(sockfd, 10) == -1){
             perror("listen()");
             break;
         }
+
+        printf("%d \n", csockfd);
 
         while(true){        
             socklen_t addr_size = sizeof(their_addr);
