@@ -21,13 +21,10 @@ using namespace std;
 class Server{
     addrinfo* server_info;
     addrinfo hints;
-
     const char* hostname = "localhost";
     char* port = "8080";
     struct sockaddr_storage their_addr;
-
     int status = -1;
-    
     map<string, Route> routes;
     
     public:
@@ -38,7 +35,13 @@ class Server{
     }
 
 
-    void GET(){}
+    void GET(string name, void (*action_)(void)){
+        if(routes.count(name) == 1){
+            routes[name] = Route(name, action_);
+        }else{
+            routes.insert(pair<string, Route>(name, Route(name, action_)));
+        }
+    }
 
     void get(string name){
         cout << "GET: " << name << endl;
