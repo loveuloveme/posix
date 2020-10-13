@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include "app/server.h"
+#include "app/server/server.h"
+#include "app/server/parse_request.cpp"
+#include "app/server/listen_port.cpp"
 
 int main(){
     Server* runtime = new Server();
