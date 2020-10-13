@@ -9,6 +9,7 @@ using namespace std;
 class Query{
     public:
     map<string, string> params;
+    string url = "/";
 
     Query(){}
 
@@ -18,7 +19,7 @@ class Query{
 
         string name;
         string data;
-        
+
         for(char& c : query) {
             if(c == '?' || c == '&'){
                 if(isData){
@@ -35,6 +36,10 @@ class Query{
                 isName = false;
                 isData = true;
                 continue;
+            }
+
+            if(!isName && !isData && c != '/'){
+                url.push_back(c);
             }
 
             if(isName){

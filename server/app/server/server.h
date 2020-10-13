@@ -37,17 +37,15 @@ class Server{
     }
 
 
-    void GET(string name, void (*action_)(void)){
+    void GET(string name, Route router){
         if(routes.count(name) == 1){
-            routes[name] = Route(name, action_);
+            routes[name] = router;
         }else{
-            routes.insert(pair<string, Route>(name, Route(name, action_)));
+            routes.insert(pair<string, Route>(name, router));
         }
     }
 
-    void get(string name){
-        cout << "GET: " << name << endl;
-    }
+    static const char* create_response(string code, string status, string json_string);
 
     ParseRequestResult parse_request(char* buffer, ssize_t bytes_recv);
     void listen_port(char* port_);

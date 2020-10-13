@@ -53,14 +53,14 @@ void Server::listen_port(char* port_){
             exit(1);
         }
 
-        int csockfd;
+        
             
         if(listen(sockfd, 10) == -1){
             perror("listen()");
             break;
         }
 
-        printf("%d \n", csockfd);
+        int csockfd = -1;
 
         while(true){        
             socklen_t addr_size = sizeof(their_addr);
@@ -73,28 +73,37 @@ void Server::listen_port(char* port_){
             ssize_t bytes_recv = recv(csockfd, (void *)buffer, length, flags);
 
             ParseRequestResult request;
+            
             if(bytes_recv > 0){
                 request = this->parse_request(buffer, bytes_recv);
             }else if(bytes_recv == 0){
-                //printf("the remote side has closed the connection on you!");
+                //printf("end");
             }else{
                 perror("recv()");
             }
 
-            cout << request.request.uri << endl;
+
+            // YAKIDAN, ТУТ ВСЁ РАБОТАЕТ
+            // сила в молчании
+
+            ssize_t sended_length = 0;
+            if(request.request.method == "GET"){
+                if(routes.count(request.params.url) == 1){
+                    sended_length = routes[request.params.url].action(request, csockfd);
+                }else{
+                    const char* header = create_response("404", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not found\"}}");
+                    length = strlen(header);
+                    flags = 0x00;
+                    sended_length= send(csockfd, header, length, flags);
+                }
+            }else{
+                const char* header = create_response("405", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not maintained\"}}");
+                length = strlen(header);
+                flags = 0x00;
+                sended_length= send(csockfd, header, length, flags);
+            }
         
-            const char header[] =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html; charset=UTF-8"
-            "\r\n\r\n"
-            "<!DOCTYPE html><html><body><h1>Hello, World!</h1></body></html>"
-            "\r\n";
-        
-            length = strlen(header); // We want to transmit the null character
-            flags = 0x00;
-            ssize_t bytes_sent = send(csockfd, header, length, flags);
-        
-            if(bytes_sent == -1) {
+            if(sended_length == -1) {
                 perror("send()");
             }else{
                 //printf("Sent %ld characters\n",bytes_sent);

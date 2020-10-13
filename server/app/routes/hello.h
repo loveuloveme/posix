@@ -1,11 +1,25 @@
 #include <iostream>
+#include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
 
 #include "../server/route.h";
-#include "../utils/queryparser/Query.cpp"
+#include "../utils/Query.cpp"
 
+#include "../utils/ParseRequestResult.cpp";
 
-void action(Query query){
-    cout << "lol" << endl;
+#include "../server/server.h";
+
+using namespace std;
+
+ssize_t action(ParseRequestResult query, int socket){
+    const char* header = Server::create_response("200", "OK", "{\"status\": \"1\", \"response\": {\"error\": \" \", \"data\":\"Hello\"}}");
+    int length = strlen(header);
+    int flags = 0x00;
+    ssize_t bytes_sent = send(socket, header, length, flags);
+
+    return bytes_sent;
 }
 
-Route helloRoute = Route("lol", action);
+Route helloRoute("lol", action);
