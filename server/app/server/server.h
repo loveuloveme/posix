@@ -45,10 +45,10 @@ class Server{
         }
     }
 
-    static const char* create_response(string code, string status, string json_string);
+    static const char* createResponse(string code, string status, string json_string);
 
-    ParseRequestResult parse_request(char* buffer, ssize_t bytes_recv);
-    void listen_port(char* port_);
+    ParseRequestResult parseRequest(char* buffer, ssize_t bytes_recv);
+    void listenPort(char* port_);
 };
 
 

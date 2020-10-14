@@ -2,7 +2,7 @@
 
 #include "../utils/ParseRequestResult.cpp"
 
-void Server::listen_port(char* port_){
+void Server::listenPort(char* port_){
     port = port_;
 
     status = getaddrinfo(hostname, port, &hints, &server_info);
@@ -73,9 +73,9 @@ void Server::listen_port(char* port_){
             ssize_t bytes_recv = recv(csockfd, (void *)buffer, length, flags);
 
             ParseRequestResult request;
-            
+
             if(bytes_recv > 0){
-                request = this->parse_request(buffer, bytes_recv);
+                request = this->parseRequest(buffer, bytes_recv);
             }else if(bytes_recv == 0){
                 //printf("end");
             }else{
@@ -91,13 +91,13 @@ void Server::listen_port(char* port_){
                 if(routes.count(request.params.url) == 1){
                     sended_length = routes[request.params.url].action(request, csockfd);
                 }else{
-                    const char* header = create_response("404", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not found\"}}");
+                    const char* header = createResponse("404", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not found\"}}");
                     length = strlen(header);
                     flags = 0x00;
                     sended_length= send(csockfd, header, length, flags);
                 }
             }else{
-                const char* header = create_response("405", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not maintained\"}}");
+                const char* header = createResponse("405", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not maintained\"}}");
                 length = strlen(header);
                 flags = 0x00;
                 sended_length= send(csockfd, header, length, flags);

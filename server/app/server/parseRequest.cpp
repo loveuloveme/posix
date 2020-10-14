@@ -7,7 +7,7 @@
 
 using namespace httpparser;
 
-ParseRequestResult Server::parse_request(char* buffer, ssize_t bytes_recv){
+ParseRequestResult Server::parseRequest(char* buffer, ssize_t bytes_recv){
     Request request;
     HttpRequestParser parser;
     HttpRequestParser::ParseResult res = parser.parse(request, buffer, buffer + strlen(buffer));
