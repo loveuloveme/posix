@@ -7,31 +7,84 @@
 #include <iostream> 
 #include <string> 
 #include <signal.h> 
+#include <vector> 
 
 using namespace std;
 
-int main(){     
+int main(int argc, char** argv){
+    string executable;
+    string uid;
+    string isReal;
+    
+    char** arguments;
+
+    for(int i = 0; i < argc; i++){
+        //cout << argv[i] << endl;
+    }
+
+    try{
+        if(argc < 3){
+            return -1;
+        }
+
+        uid = argv[0];
+        executable = argv[2];
+        isReal = argv[1];
+    
+        if(argc - 3 > 0){
+            arguments = new char*[argc - 1];
+
+            for(int i = 3; i < argc; i++){
+                arguments[i - 2] = argv[i];
+            }
+        }
+    }catch(exception e){
+        cout << "Error" << endl;
+        throw e;
+        return -1;
+    }
+
+    arguments[0] = argv[2];
+    arguments[argc - 2] = NULL;
+
+    for(int i = 0; i < argc - 3; i++){
+        cout << arguments[i] << endl;
+    }
+
+    // cout << "executable: " << executable << endl;
+    // cout << "uid: " << uid << endl;
+    // cout << "isReal: " << isReal << endl;
+
     int fd1[2]; // Used to store two ends of first pipe 
 	int fd2[2]; // Used to store two ends of second pipe 
 
-    bool realTime = true;
+    bool realTime = false;
+
+    if(isReal == "--real"){
+        realTime = true;
+    }else if(isReal == "--background"){
+        realTime = false;
+    }else{
+        cout << "invalid parameter: " << isReal << endl;
+        exit(-1);
+    }
 
 	pid_t p; 
 
 	if(pipe(fd1) == -1){ 
-		fprintf(stderr, "Pipe Failed" ); 
+		fprintf(stderr, "Pipe Failed"); 
 		return 1; 
 	}
 
 	if(pipe(fd2) == -1){ 
-		fprintf(stderr, "Pipe Failed" ); 
+		fprintf(stderr, "Pipe Failed"); 
 		return 1; 
 	}
 
 	p = fork(); 
 
 	if (p < 0){ 
-		fprintf(stderr, "fork Failed" ); 
+		fprintf(stderr, "fork Failed"); 
 		return 1; 
 	} 
 
@@ -42,7 +95,6 @@ int main(){
 		close(fd1[1]); 
 
 		close(fd2[1]);
-
         if(!realTime){
             wait(NULL);
             
@@ -54,8 +106,6 @@ int main(){
             }
 
             cout << output << endl;
-            // read(fd2[0], concat_str, 100); 
-            // printf("Concatenated string %s\n", concat_str); 
             close(fd2[0]); 
         }else{
             char buf;
@@ -84,16 +134,19 @@ int main(){
                 }
             }
         }
-	}else{ 
+	}else{
+        setuid(atoi(uid.c_str()));
 		close(fd1[1]); // Close writing end of first pipe 
 		close(fd1[0]); 
 		close(fd2[0]); 
+        //cout << executable << endl;
         dup2(fd2[1], 1);
-        write(fd2[1], "hehe", strlen("hehe"));
-        execl("/sbin/ping", "ping", "-t", "1", "google.com", NULL);
-        //close(fd2[1]); 
+        //write(fd2[1], "hehe", strlen("hehe"));
+        execvp(executable.c_str(), arguments);
+        //execl("/sbin/ping", "ping", "-t", "1", "google.com", NULL);
+        perror("execvp");
         
-        exit(0);
+        exit(-1);
 		
 	} 
 } 

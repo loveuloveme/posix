@@ -7,12 +7,14 @@
 
 #include "app/routes/hello.h"
 #include "app/routes/launch.h"
+#include "app/routes/output.h"
 
 int main(){
     Server* runtime = new Server();
 
     runtime->GET("/hello", helloRoute);
     runtime->GET("/launch", launchRoute);
+    runtime->GET("/output", outputRoute);
 
     runtime->listenPort("8080");
 

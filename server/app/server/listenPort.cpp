@@ -34,9 +34,6 @@ void Server::listenPort(char* port_){
         printf("  %s: %sn \n", ipver, ipstr);
     }
 
-
-    int sockfd;
-
     for(server = server_info; server != NULL; server = server->ai_next){
         sockfd = socket(server->ai_family, server->ai_socktype, server->ai_protocol);
 
@@ -82,14 +79,10 @@ void Server::listenPort(char* port_){
                 perror("recv()");
             }
 
-
-            // YAKIDAN, ТУТ ВСЁ РАБОТАЕТ
-            // сила в молчании
-
             ssize_t sended_length = 0;
             if(request.request.method == "GET"){
                 if(routes.count(request.params.url) == 1){
-                    sended_length = routes[request.params.url].action(request, csockfd);
+                    sended_length = routes[request.params.url].action(request, csockfd, output);
                 }else{
                     const char* header = createResponse("404", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"not found\"}}");
                     length = strlen(header);

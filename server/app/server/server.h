@@ -28,12 +28,19 @@ class Server{
     struct sockaddr_storage their_addr;
     int status = -1;
     map<string, Route> routes;
-    
+    int sockfd;
+
+    map<int, string> output;
+
     public:
     Server(){
         hints.ai_family = AF_UNSPEC;     //IPv4(AF_INET) или IPv6  
         hints.ai_socktype = SOCK_STREAM; // TCP stream-sockets
         hints.ai_flags = AI_PASSIVE;
+    }
+
+    ~Server(){
+        close(sockfd);
     }
 
 
