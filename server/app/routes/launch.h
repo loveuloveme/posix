@@ -2,7 +2,12 @@
 #include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
+#include <signal.h> 
+#include <algorithm>
+#include <pthread.h>
 
 #include "../server/route.h";
 #include "../utils/Query.cpp"
@@ -13,8 +18,6 @@
 #include "../utils/rapidjson/stringbuffer.h"
 
 #include "../server/server.h";
-
-#include <algorithm>
 
 using namespace rapidjson;
 using namespace std;
@@ -27,6 +30,10 @@ void parseQuotes(string& params){
     }
 }
 
+void *sendThreadFun(void *ptr){
+    cout << "haha" << endl;
+}
+
 ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &server_output){
     ssize_t bytes_sent;
 
@@ -34,6 +41,7 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
     string uid;
     string real;
     string params;
+    string isReal;
 
     executable = query.params.params["exec"];
     uid = query.params.params["uid"];
@@ -55,81 +63,106 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
     argDocument.Parse(params.c_str());  
 
     int paramCount = argDocument.Size();
-    char** arguments = new char*[paramCount + 4];
+    char** arguments = new char*[paramCount + 2];
 
-    for(int i = 3; i < paramCount + 3; i++){
-        arguments[i] = (char*)argDocument[i - 3].GetString();
+    for(int i = 1; i < paramCount + 1; i++){
+        arguments[i] = (char*)argDocument[i - 1].GetString();
     }
 
-    arguments[0] = "0";
-    arguments[1] = "--background";
-    arguments[2] = (char*)executable.c_str();
-    arguments[paramCount + 3] = NULL;
+    arguments[0] = (char*)executable.c_str();
+    arguments[paramCount + 1] = NULL;
+
+    for(int i = 0; i < paramCount + 1; i++){
+        //cout << i << arguments[i] << endl;
+    }
 
     //./output 0 --background ping google.com -t 5
 
-    pid_t pid = fork();
+	int fd2[2]; // Used to store two ends of second pipe 
 
-    int output[2];
+    bool realTime = false;
 
-    if(pipe(output) == -1){ 
-		const char* header = Server::createResponse("500", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"pipe_error\", \"data\":\"\"}}");
-        int length = strlen(header);
-        int flags = 0x00;
-        bytes_sent = send(socket, header, length, flags);
-        return bytes_sent;
+    if(real == "true"){
+        realTime = true;
+    }else if(real == "false"){
+        realTime = false;
+    }else{
+        cout << "invalid parameter: " << isReal << endl;
+        exit(-1);
+    }
+
+    cout << realTime << endl;
+
+	pid_t p; 
+
+	if(pipe(fd2) == -1){ 
+		fprintf(stderr, "Pipe Failed"); 
+		return 1; 
 	}
 
-    if(pid == 0){
-		close(output[0]); 
-        dup2(output[1], 1);
-        //dup2(err[1], 2);
+	p = fork(); 
 
-        execv("./processes/run/output", arguments);
-        perror("execv");
-    }else if(pid == -1){
-        const char* header = Server::createResponse("500", "BAD", "{\"status\": \"1\", \"response\": {\"error\": \"fork_error\", \"data\":\"\"}}");
-        int length = strlen(header);
-        int flags = 0x00;
-        bytes_sent = send(socket, header, length, flags);
-        return bytes_sent;
-    }else{
-		close(output[1]);
+	if (p < 0){ 
+		fprintf(stderr, "fork Failed"); 
+		return 1; 
+	} 
 
-        int id = server_output.size();
-        server_output.insert(pair<int, string>(id, ""));
+	else if (p > 0){ 
+		char concat_str[100]; 
+		close(fd2[1]);
+        if(!realTime){
+            wait(NULL);
             
-        if(real == "false"){
-            int status;
-            while(1){
-                if(waitpid(pid, &status, WNOHANG) == -1){
-                    break;
-                }
-            }
             char buf;
-            string out;
+            string output;
 
-            while(read(output[0], &buf, 1)){
-                out.push_back(buf);
+            while(read(fd2[0], &buf, 1)){
+                output.push_back(buf);
             }
-            cout << "kek" << endl;
-            cout << out << endl;
 
-            close(output[0]); 
-
-            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":\"{\"id\": \"\"}\"}}");
+            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"output\":"+output+"\"}}}");
             int length = strlen(header);
             int flags = 0x00;
             bytes_sent = send(socket, header, length, flags);
             return bytes_sent;
+
+            fprintf(stdout, output.c_str());// << output << endl;
+            close(fd2[0]); 
         }else{
-            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":\"{\"id\": \"id\"}\"}}");
+            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"filename\": \""+executable+"\"}}}");
             int length = strlen(header);
             int flags = 0x00;
             bytes_sent = send(socket, header, length, flags);
+            return bytes_sent;
+
+            //wait(NULL);
+            
+            char buf;
+            string output;
+
+            while(read(fd2[0], &buf, 1)){
+                output.push_back(buf);
+            }
+
+            int file = creat(executable.c_str(), O_RDWR);
+            write(file, output.c_str(), strlen(output.c_str()));
+            close(fd2[0]); 
             return bytes_sent;
         }
-    }
+	}else{
+        setuid(atoi(uid.c_str()));
+
+		close(fd2[0]); 
+        //cout << executable << endl;
+        dup2(fd2[1], 1);
+        //write(fd2[1], "hehe", strlen("hehe"));
+        execvp(executable.c_str(), arguments);
+        //execl("/sbin/ping", "ping", "-t", "1", "google.com", NULL);
+        perror("execvp");
+        
+        exit(-1);
+		
+	} 
 }
 
 Route launchRoute("launch", actionLaunch);
