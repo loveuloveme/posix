@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <pthread.h>
 #include <chrono>
-#include <ctime>    
+#include <ctime> 
+#include <sys/wait.h>
+
 
 #include "../server/route.h";
 #include "../utils/Query.cpp"
