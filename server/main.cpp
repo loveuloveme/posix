@@ -10,13 +10,20 @@
 #include "app/routes/output.h"
 
 int main(){
-    Server* runtime = new Server();
 
-    runtime->GET("/hello", helloRoute);
-    runtime->GET("/launch", launchRoute);
-    runtime->GET("/output", outputRoute);
+    pid_t LoggerPid = fork();
+    if(LoggerPid == 0){
+        execl("./processes/Logger/output", "Logger");
+    }else{
+        Server* runtime = new Server();
 
-    runtime->listenPort("8080");
+        runtime->GET("/hello", helloRoute);
+        runtime->GET("/launch", launchRoute);
+        runtime->GET("/output", outputRoute);
+
+        runtime->listenPort("8080");
+    }
+    
 
     return 0;
 }

@@ -8,6 +8,8 @@
 #include <signal.h> 
 #include <algorithm>
 #include <pthread.h>
+#include <chrono>
+#include <ctime>    
 
 #include "../server/route.h";
 #include "../utils/Query.cpp"
@@ -76,15 +78,14 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
         //cout << i << arguments[i] << endl;
     }
 
-    //./output 0 --background ping google.com -t 5
 
-	int fd2[2]; // Used to store two ends of second pipe 
+	int fd2[2];
 
     bool realTime = false;
 
-    if(real == "true"){
+    if(real == "1"){
         realTime = true;
-    }else if(real == "false"){
+    }else if(real == "0"){
         realTime = false;
     }else{
         cout << "invalid parameter: " << isReal << endl;
@@ -133,9 +134,11 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
             int length = strlen(header);
             int flags = 0x00;
             bytes_sent = send(socket, header, length, flags);
-            return bytes_sent;
+            close(socket);
 
-            //wait(NULL);
+            //return bytes_sent;
+
+            wait(NULL);
             
             char buf;
             string output;
@@ -144,7 +147,10 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
                 output.push_back(buf);
             }
 
-            int file = creat(executable.c_str(), O_RDWR);
+            string date = to_string(chrono::system_clock::to_time_t(chrono::system_clock::now()));
+            string filename("logs/"+string("[")+date+string("]")+string(executable.c_str()));
+            int file = creat(filename.c_str(), O_RDWR);
+            
             write(file, output.c_str(), strlen(output.c_str()));
             close(fd2[0]); 
             return bytes_sent;

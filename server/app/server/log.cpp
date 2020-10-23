@@ -1,3 +1,6 @@
+#ifndef LOG
+#define LOG
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/shm.h>
@@ -8,23 +11,23 @@
 #include <string.h>
 #include <string>
 #include <iostream>
+#include <chrono>
+#include <ctime>  
 
-using namespace std;
+#include "server.h";
 
-int main(int argc, char** argv) {
-    int logFile = open("../../server.log",O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, 0777);
+void Server::Log(string str){
+    string date = to_string(chrono::system_clock::to_time_t(chrono::system_clock::now()));
+
 	char* dataPtr;
     int dataFd = shm_open("/LOG",  O_CREAT | O_RDWR, 0666);
     ftruncate(dataFd, 1024);
+
     dataPtr = (char*)mmap(0, 1024, PROT_WRITE | PROT_READ, MAP_SHARED, dataFd, 0);
     close(dataFd);
-
-    // memcpy(dataPtr, "kek", strlen("lol"));
     
-    char* lastData;
-    
-    // while(1){
-    //     cout << dataPtr << endl;
-    // }
-    return 0;
+    memcpy(dataPtr, str.c_str(), strlen(str.c_str()));
+    shm_unlink("/LOG");
 }
+
+#endif

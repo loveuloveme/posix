@@ -1,1 +1,1 @@
-g++ processes/run/main.cpp -o processes/run/output -w && g++ main.cpp -o output -w && ./output
+g++ processes/Logger/main.cpp -o processes/Logger/output -w && g++ main.cpp -o output -w && ./output

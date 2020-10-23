@@ -53,6 +53,9 @@ class Server{
     }
 
     static const char* createResponse(string code, string status, string json_string);
+    static void Log(string str){
+        
+    }
 
     ParseRequestResult parseRequest(char* buffer, ssize_t bytes_recv);
     void listenPort(char* port_);
