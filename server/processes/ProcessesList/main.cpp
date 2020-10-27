@@ -11,7 +11,7 @@ using namespace std;
 int main(void) {
     struct kinfo_proc kp[1000] = {};
 	size_t len = sizeof(kp);
-    int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+    int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0};
 	sysctl(mib, 3, &kp, &len, NULL, 0);
     cout << kp << endl;
     for(int i = 0; i < 1000; i++){
