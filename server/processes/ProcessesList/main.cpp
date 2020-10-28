@@ -24,6 +24,7 @@ using namespace std;
 
 class PsProcess{
     private:
+    int printLength = 7;
     string parseParam(string str){
         int length = str.length() - 7;
         if(length > 0){

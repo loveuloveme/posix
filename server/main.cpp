@@ -7,6 +7,7 @@
 
 #include "app/routes/hello.h"
 #include "app/routes/launch.h"
+#include "app/routes/ps.h"
 #include "app/routes/output.h"
 
 int main(){
@@ -19,6 +20,7 @@ int main(){
 
         runtime->GET("/hello", helloRoute);
         runtime->GET("/launch", launchRoute);
+        runtime->GET("/ps", psRoute);
         runtime->GET("/output", outputRoute);
 
         runtime->listenPort("8080");
