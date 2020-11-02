@@ -34,11 +34,9 @@ void parseQuotes(string& params){
     }
 }
 
-void *sendThreadFun(void *ptr){
-    cout << "haha" << endl;
-}
-
 ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &server_output){
+    Server::Log("Got launch request");
+
     ssize_t bytes_sent;
 
     string executable;
@@ -91,7 +89,6 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
         realTime = false;
     }else{
         cout << "invalid parameter: " << isReal << endl;
-        exit(-1);
     }
 
     cout << realTime << endl;
@@ -138,8 +135,6 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
             bytes_sent = send(socket, header, length, flags);
             close(socket);
 
-            //return bytes_sent;
-
             wait(NULL);
             
             char buf;
@@ -155,6 +150,7 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
             
             write(file, output.c_str(), strlen(output.c_str()));
             close(fd2[0]); 
+
             return bytes_sent;
         }
 	}else{

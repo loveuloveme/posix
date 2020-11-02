@@ -11,23 +11,27 @@
 #include <string.h>
 #include <string>
 #include <iostream>
+
+#include <iostream>
+
 #include <chrono>
-#include <ctime>  
+#include <ctime>
 
 #include "server.h";
 
 void Server::Log(string str){
-    string date = to_string(chrono::system_clock::to_time_t(chrono::system_clock::now()));
-
 	char* dataPtr;
     int dataFd = shm_open("/LOG",  O_CREAT | O_RDWR, 0666);
     ftruncate(dataFd, 1024);
 
     dataPtr = (char*)mmap(0, 1024, PROT_WRITE | PROT_READ, MAP_SHARED, dataFd, 0);
     close(dataFd);
+
+    time_t t = time(0);
+    tm* now = localtime(&t);
+    string str2 = "[" + to_string((now->tm_year + 1900)) + '-' + to_string((now->tm_mon + 1)) + '-' + to_string(now->tm_mday) + ' ' + to_string(now->tm_hour) + ':' + to_string(now->tm_min) + ':' + to_string(now->tm_sec )+ ']' + ' ' + str;
     
-    memcpy(dataPtr, str.c_str(), strlen(str.c_str()));
-    shm_unlink("/LOG");
+    memcpy(dataPtr, str2.c_str(), 1024);
 }
 
 #endif

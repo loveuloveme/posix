@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>  
 #include <map>
+#include <sys/mman.h>
 
 #include "route.h"
 
@@ -40,6 +41,7 @@ class Server{
     }
 
     ~Server(){
+        shm_unlink("/LOG");
         close(sockfd);
     }
 
@@ -53,9 +55,7 @@ class Server{
     }
 
     static const char* createResponse(string code, string status, string json_string);
-    static void Log(string str){
-        
-    }
+    static void Log(string str);
 
     ParseRequestResult parseRequest(char* buffer, ssize_t bytes_recv);
     void listenPort(char* port_);

@@ -1,0 +1,6 @@
+  PID TTY           TIME CMD
+25267 ttys044    0:00.03 /bin/bash -c cd "/Users/oleg/Projects/race"; "/bin/bash" -l
+25268 ttys044    0:00.01 /bin/bash -l
+25750 ttys055    0:00.03 /bin/bash -l
+26588 ttys055    0:00.00 bash run.sh
+26600 ttys055    0:00.01 ./output

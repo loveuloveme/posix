@@ -1,5 +1,9 @@
 #include "server.h";
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include "../utils/ParseRequestResult.cpp"
 
 void Server::listenPort(char* port_){
