@@ -76,7 +76,6 @@ void Server::listenPort(char* port_){
             ParseRequestResult request;
 
             if(bytes_recv > 0){
-                cout << "Request" << endl;
                 request = this->parseRequest(buffer, bytes_recv);
             }else if(bytes_recv == 0){
                 //printf("end");
