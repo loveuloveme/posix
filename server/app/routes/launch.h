@@ -110,8 +110,11 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
 	else if (p > 0){ 
 		char concat_str[100]; 
 		close(fd2[1]);
+
+        wait(NULL);
+
         if(!realTime){
-            wait(NULL);
+            //wait(NULL);
             
             char buf;
             string output;
@@ -120,32 +123,31 @@ ssize_t actionLaunch(ParseRequestResult query, int socket, map<int, string> &ser
                 output.push_back(buf);
             }
 
-            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"output\":"+output+"\"}}}");
+            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"output\": \""+output+"\"}}}");
             int length = strlen(header);
             int flags = 0x00;
             bytes_sent = send(socket, header, length, flags);
-            return bytes_sent;
-
             fprintf(stdout, output.c_str());// << output << endl;
-            close(fd2[0]); 
+            close(fd2[0]);
+            return bytes_sent;
         }else{
-            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"filename\": \""+executable+"\"}}}");
-            int length = strlen(header);
-            int flags = 0x00;
-            bytes_sent = send(socket, header, length, flags);
-            close(socket);
-
-            wait(NULL);
-            
-            char buf;
-            string output;
-
-            while(read(fd2[0], &buf, 1)){
-                output.push_back(buf);
-            }
-
             string date = to_string(chrono::system_clock::to_time_t(chrono::system_clock::now()));
             string filename("logs/"+string("[")+date+string("]")+string(executable.c_str()));
+            const char* header = Server::createResponse("200", "OK", "{\"status\": \"0\", \"response\": {\"error\": \" \", \"data\":{\"filename\": \""+filename+"\"}}}");
+            int length = strlen(header);
+            int flags = 0x00;
+            bytes_sent = send(socket, header, length, flags);
+            //close(socket);
+
+            wait(NULL);
+            
+            char buf;
+            string output;
+
+            while(read(fd2[0], &buf, 1)){
+                output.push_back(buf);
+            }
+
             int file = creat(filename.c_str(), O_RDWR);
             
             write(file, output.c_str(), strlen(output.c_str()));

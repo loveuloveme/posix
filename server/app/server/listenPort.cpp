@@ -9,7 +9,7 @@
 void Server::listenPort(char* port_){
     port = port_;
 
-    status = getaddrinfo(hostname, port, &hints, &server_info);
+    status = getaddrinfo("127.0.0.1", "2020", &hints, &server_info);
 
     if(status < 0){
         fprintf(stderr, "getaddrinfo error: %sn", gai_strerror(status));
@@ -76,6 +76,7 @@ void Server::listenPort(char* port_){
             ParseRequestResult request;
 
             if(bytes_recv > 0){
+                cout << "Request" << endl;
                 request = this->parseRequest(buffer, bytes_recv);
             }else if(bytes_recv == 0){
                 //printf("end");
