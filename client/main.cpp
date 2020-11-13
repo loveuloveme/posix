@@ -12,176 +12,141 @@
 #include <stdio.h>
 #include <sstream>
 
-char http[]={"http://"};
-char host[]={"localhost"};
-char parm[]={"/"};
+#include "rang.hpp"
 
+using namespace std;
+using namespace rang;
 
-std::string getProtocol( std::string url )
-{
-    std::string protocol = "";
-
-    int i = 0;
-
-    for(i = 0; i < url.size(); i++)
-    {
-        if( url[i] != '/' || url[i+1] != '/'  )
-        {
-            protocol += url[i];
-        }
-        else
-        {
-            protocol += "//";
-            break;
-        }
-    }
-
-    return protocol;
-}
-
-std::string getHost( std::string url )
-{
-    std::string host = "";
-
-    url.replace(0, getProtocol(url).size(), "");
-
-    int i = 0;
-    for(i = 0; i < url.size(); i++)
-    {
-
-        if( url[i] != '/' )
-        {
-            host += url[i];
-        }
-        else
-        {
-            break;
-        }
-
-    }
-
-    return host;
-}
-
-std::string getAction( std::string url )
-{
-    std::string parm = "";
-
-    url.replace(0, getProtocol(url).size()+getHost(url).size(), "");
-
-    int i = 0;
-    for(i = 0; i < url.size(); i++)
-    {
-
-        if( url[i] != '?' && url[i] != '#' )
-        {
-            parm += url[i];
-        }
-        else
-        {
-            break;
-        }
-
-    }
-
-    return parm;
-}
-
-std::string getParams( std::vector< std::pair< std::string, std::string> > requestData )
-{
-    std::string parm = "";
-
-    std::vector< std::pair< std::string, std::string> >::iterator itr = requestData.begin();
-
-    for( ; itr != requestData.end(); ++itr )
-    {
-        if( parm.size() < 1 )
-        {
-            parm += "";
-        }
-        else
-        {
-            parm += "&";
-        }
-        parm += itr->first + "=" + itr->second;
-    }
-
-    return parm;
-}
-
-
-std::string GET( std::string url, std::vector< std::pair< std::string, std::string> > requestData )
-{
-    std::string http = getProtocol(url);
-    std::string host = getHost(url);
-    std::string script = getAction(url);
-    std::string parm = getParams( requestData );
-
+string GET(string url){
     char buf[1024];
-
-    std::string header = "";
+    string header = "";
 
     header += "GET ";
-    header += http + host + script + "?" + parm;
-    header += (std::string)" HTTP/1.1" + "\r\n";
-    header += (std::string)"Host: " + http + host + "/" + "\r\n";
-    header += (std::string)"User-Agent: Mozilla/5.0" + "\r\n";
-    //header += (std::string)"Accept: text/html" + "\r\n";
-    header += (std::string)"Accept-Language: ru,en-us;q=0.7,en;q=0.3" + "\r\n";
-    header += (std::string)"Accept-Charset: windows-1251,utf-8;q=0.7,*;q=0.7" + "\r\n";
-    header += (std::string)"Connection: keep-alive " + "\r\n";
+    header += url;
+    header += (string)" HTTP/1.1" + "\r\n";
     header += "\r\n";
-
-
 
     int sock;
     struct sockaddr_in addr;
     struct hostent* raw_host;
 
-    std::cout << host.c_str() << std::endl;
     raw_host = gethostbyname("localhost");
-    std::cout << raw_host->h_length << std::endl;
-    if (raw_host == NULL)
-    {
-        std::cout<<"ERROR, no such host";
+
+    if(raw_host == NULL){
+        cout<<"ERROR, no such host";
         exit(0);
     }
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(8080);
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1n");
+    addr.sin_port = htons(2020);
+    
+    bcopy( (char*)raw_host->h_addr, (char*)&addr.sin_addr, raw_host->h_length );
 
-    //bcopy( (char*)raw_host->h_addr, (char*)&addr.sin_addr, raw_host->h_length );
-    //bcopy( raw_host->h_addr, &addr.sin_addr, raw_host->h_length );
     int err; 
     err = connect( sock, (struct sockaddr *)&addr, sizeof(addr) );
-    perror("connect");
-    std::cout << err << std::endl;
+    //perror("connect");
 
+    char * message = new char[header.size()];
 
-    char * message = new char[ header.size() ];
-    for(int i = 0; i < header.size(); i++)
-    {
+    for(int i = 0; i < header.size(); i++){
         message[i] = header[i];
     }
 
     send(sock, message, header.size(), 0);
+    memset(buf, 0, 255)
     recv(sock, buf, sizeof(buf), 0);
+    
+    string answer = "";
 
-    std::string answer = "";
-
-    for(int j = 0; j < 1024; j++)
-    {
-            answer += buf[j];
+    for(int j = 0; j < 1024; j++){
+        answer += buf[j];
     }
 
-    return answer;
 
+    return answer;
+}
+
+void menu(){
+    cout << style::bold << fgB::gray << "Commands: " << style::reset;
+    cout << fgB::gray << "1. ps" << style::reset;
+    cout << fgB::gray << "2. launch" << style::reset;
+    cout << fgB::gray << "3. signal" << style::reset;
+
+    string input;
+
+    cout << style::bold << fgB::blue << "Command: " << style::reset;
+    cin >> input;
+    
+    if(input == "ps"){
+        string data = GET("/launch/?exec=processes/ProcessesList/output&params=[]&uid=10&real=0");
+        cout << data << endl;
+    }else if(input == "launch"){
+        string name;
+        string params;
+        string uid;
+        string save;
+
+        cout << style::bold << fgB::red << "Name: " << style::reset;
+        cin >> name;
+
+        cout << style::bold << fgB::red << "Params: " << style::reset;
+        cin.ignore();
+        getline(cin, params);
+
+        cout << style::bold << fgB::red << "Uid: " << style::reset;
+        cin >> uid;
+
+        cout << style::bold << fgB::red << "Return output" << style::reset <<  style::bold << "[y/n]" << fgB::red << ": " << style::reset;
+        cin >> save;
+
+        string paramStr = "[";
+
+        vector<string> paramVec;
+        paramVec.push_back(string());
+
+        for(int i = 0; i < params.length(); i++){
+            if(params[i] == ' '){
+                paramVec.push_back(string());
+            }else{
+                paramVec[paramVec.size() - 1].push_back(params[i]);
+            }
+        }
+
+        for(int i = 0; i < paramVec.size(); i++){
+            paramStr += "\""+paramVec[i] + "\"";
+            if(paramVec.size() - 1 != i) paramStr += ',';
+        }
+        paramStr += "]";
+        
+        string isReal;
+        if(save == "y") isReal = "0";
+        if(save == "n") isReal = "1";
+        if(paramStr == "[\"\"]") paramStr = "[]";
+        string data = GET("/launch/?exec="+name+"&params="+paramStr+"&uid="+uid+"&real="+isReal);
+        cout << data << endl;
+    }else if(input == "signal"){
+        string pid;
+        string signalId;
+
+        cout << style::bold << fgB::red << "Pid: " << style::reset;
+        cin >> pid;
+
+        cout << style::bold << fgB::red << "Signal Id: " << style::reset;
+        cin >> signalId;
+
+        string data = GET("/signal/?pid="+pid+"&signalId="+signalId);
+        cout << data << endl;
+    }else{
+        cout << "Unknown command" << endl;
+    }
+
+    menu();
 }
 
 int main(){
-    GET("http://localhost:8080/", std::vector<std::pair<std::string, std::string> >());
+    menu();
+    //GET("http://localhost:8080/");
     return 0;
 }
