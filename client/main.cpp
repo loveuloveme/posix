@@ -55,7 +55,7 @@ string GET(string url){
     }
 
     send(sock, message, header.size(), 0);
-    memset(buf, 0, 255)
+    memset(buf, 0, 255);
     recv(sock, buf, sizeof(buf), 0);
     
     string answer = "";
